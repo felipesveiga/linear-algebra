@@ -23,6 +23,7 @@ class GaussianElimination:
     '''
     def __init__(self, A:np.ndarray, b:np.ndarray):
         self.__check_args(A,b)
+        A, b = A.astype(np.float32), b.astype(np.float32)
         self.A, self.A_ = A, A
         self.b, self.b_ = b, b
 
@@ -42,20 +43,49 @@ class GaussianElimination:
         assert np.linalg.det(A) != 0, 'Singular Matrix'  
         assert A.shape[0] == b.shape[0], '`b`\'s dimensionality must match `A`\'s number of row vectors'
 
-    def __check_breakdown(self):
+    def __substitute(self, i:int, idx_sub:int)->None:
+        '''
+            Applies the replacement of lines, in the event of a temporary breakdown.
+
+            Parameters
+            ----------
+            `i`: int
+                Index of the line to be replaced.
+            `idx_sub`: int
+                Index of the replacement line.
+        '''
+        self.A_[[i, idx_sub]] = self.A_[[idx_sub, i]]
+        self.b_[[i, idx_sub]] = self.b_[[idx_sub, i]]
+        
+    def __check_breakdown(self, i:int)->float:
         '''
             Checks whether the system is going to face breakdown.
+
+            Parameter
+            ---------
+            `i`: int
+                The index of the currently scrutinized row.
+
+            Returns
+            -------
+            The value of the real pivot of the interation.
         '''
-        assert 0 not in np.diag(self.A_), 'System will face breakdown'
+        if self.A_[i,i] == 0:
+            candidate_subs = np.argwhere(self.A_[i+1:, i]!=0).flatten()
+            if candidate_subs.size>0:
+                idx_sub = candidate_subs[0]+(i+1)
+                self.__substitute(i, idx_sub)
+            else:
+                raise ArithmeticError('System will face breakdown')
+        return self.A_[i,i]
     
-    def eliminate(self)->np.ndarray:
+    def eliminate(self):
         '''
             Applies the Gaussian Elimination. 
         '''
-        for i in range(self.A.shape[0]):
-            pivot = self.A_[i,i]
+        for i in range(self.A_.shape[0]):
+            pivot = self.__check_breakdown(i)
             for j in range(i+1, self.A_.shape[0]):
-                self.__check_breakdown()
                 multiplier = self.A_[j,i]/pivot
                 self.A_[j] = self.A_[j]- (self.A_[i] * multiplier)
                 self.b_[j] = self.b_[j]- (self.b_[i] * multiplier)
