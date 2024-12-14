@@ -1,5 +1,5 @@
 import numpy as np
-from linalg.utils.core.core import _assure_dimension
+from utils.core.core import _assure_dimension
 
 def dot(x:np.ndarray, y:np.ndarray)->float:
     '''
