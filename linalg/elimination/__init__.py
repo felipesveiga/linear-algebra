@@ -1,1 +1,3 @@
-from elimination.gaussian_elimination import GaussianElimination
+from linalg.elimination.gaussian_elimination import GaussianElimination
+from linalg.elimination.gauss_jordan import GaussJordanElimination
+from linalg.elimination import eliminate

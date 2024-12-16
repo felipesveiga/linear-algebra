@@ -1,1 +1,1 @@
-from core.core import dot, matmul
+from linalg.core.core import dot, matmul
