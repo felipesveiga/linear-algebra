@@ -5,7 +5,7 @@ class GaussianElimination:
         self.__check_A(A)
         self.A = A.astype(np.float32)
         self._P = np.identity(A.shape[0]) 
-        self._E = [np.identity(A.shape[0]) for i in range(1, A.shape[0]) for j in range(i)]
+        self._E = []#[np.identity(A.shape[0]) for i in range(1, A.shape[0]) for j in range(i)]
 
     @staticmethod
     def __check_A(A:np.ndarray)->None:
@@ -34,3 +34,18 @@ class GaussianElimination:
                 self.__swap_P_rows(i)
             else:
                 continue
+    
+    def __configure_E(self)->None:
+        A = self._P @ self.A
+        for i in range(1, A.shape[0]):
+            for j in range(0, i):
+                E = np.identity(A.shape[0])
+                E[i,i-1] = -A[i,j] / A[j,j]
+                self._E.insert(0, E)
+        self._E = np.linalg.multi_dot(self._E)
+        
+    def eliminate(self, b:np.ndarray=None):
+        self.__configure_P()
+        self.__configure_E()
+        M = np.concatenate((self.A, b), axis=0) if b else self.A
+        return np.linalg.multi_dot((self._E, self._P, M)) 
