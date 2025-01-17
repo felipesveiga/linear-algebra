@@ -1,11 +1,12 @@
 import numpy as np
+from typing import Tuple
 
 class GaussianElimination:
     def __init__(self, A:np.ndarray):
         self.__check_A(A)
         self.A = A.astype(np.float32)
-        self._P = np.identity(A.shape[0]) 
-        self._E = []#[np.identity(A.shape[0]) for i in range(1, A.shape[0]) for j in range(i)]
+        self.P_ = np.identity(A.shape[0]) 
+        self.E_ = []
 
     @staticmethod
     def __check_A(A:np.ndarray)->None:
@@ -24,7 +25,7 @@ class GaussianElimination:
         candidate_subs = np.argwhere(self.A[i+1:, i]!=0).flatten()
         if candidate_subs.size>0:
             idx_sub = candidate_subs[0]+(i+1)
-            self._P[[i, idx_sub]] = self._P[[idx_sub, i]]
+            self.P_[[i, idx_sub]] = self.P_[[idx_sub, i]]
         else:
             raise ArithmeticError('System will face breakdown')
 
@@ -36,16 +37,42 @@ class GaussianElimination:
                 continue
     
     def __configure_E(self)->None:
-        A = self._P @ self.A
+        A = self.P_ @ self.A
         for i in range(1, A.shape[0]):
             for j in range(0, i):
                 E = np.identity(A.shape[0])
                 E[i,i-1] = -A[i,j] / A[j,j]
-                self._E.insert(0, E)
-        self._E = np.linalg.multi_dot(self._E)
+                self.E_.insert(0, E)
+        self.E_ = np.linalg.multi_dot(self.E_) if len(self.E_)>1 else np.array(self.E_[0])
         
-    def eliminate(self, b:np.ndarray=None):
+    def __eliminate(self, b:np.ndarray=None)->Tuple[np.ndarray] | np.ndarray:
+        print(b)
+        M = np.concatenate((self.A, b), axis=1) if b is not None else self.A
+        M = np.linalg.multi_dot((self.E_, self.P_, M)) 
+        return (M[:, :-1], M[:, -1]) if b is not None else M
+
+    def __solve(self, b:np.ndarray)->np.ndarray:
+        solution, N = np.array([0. for i in range(self.U_.shape[0])]),  -(self.U_.shape[0]+1)
+        for i in range(-1, N, -1):
+            subtract = np.sum(self.U_[i, i+1:]*solution[i+1:]) if i<-1 else 0
+            solution[i] = (b[i] - subtract)/self.U_[i,i]
+        return np.array(solution)
+
+    def eliminate(self, b:np.ndarray=None)->Tuple[np.ndarray]:
         self.__configure_P()
         self.__configure_E()
-        M = np.concatenate((self.A, b), axis=0) if b else self.A
-        return np.linalg.multi_dot((self._E, self._P, M)) 
+        self.U_ = self.__eliminate(b)
+        return self
+
+    def solve(self, b:np.ndarray=None)->np.ndarray:
+        if b is None:
+            raise ValueError('You must specify a `b` vector')
+        b = b.reshape(-1,1) if b.ndim==1 else b
+        if 'U_' not in self.__dict__:
+            self.eliminate(b)
+            return self.__solve(*self.U_)
+        else:
+            if isinstance(self.U_, tuple):
+                return self.__solve(*self.U_) 
+            else:
+                return self.__solve(self.U_, b)
