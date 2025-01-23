@@ -1,4 +1,5 @@
 import numpy as np
+from linalg.elimination import GaussianElimination
 from linalg.utils.core.core import _assure_dimension
 
 def dot(x:np.ndarray, y:np.ndarray)->float:
@@ -42,3 +43,20 @@ def matmul(X:np.ndarray, Y:np.ndarray)->np.ndarray:
         for j in range(Y.shape[1]):
             output[i,j] = dot(X[i, :], Y[:, j])
     return output
+
+def solve(A:np.ndarray, b:np.ndarray)->np.ndarray:
+    '''
+        Solves the provided linear system.
+
+        Parameters
+        ---------
+        `A`: `np.ndarray`
+            The coefficient matrix
+        `b`: `np.ndarray`
+            The target vector.         
+
+        Returns
+        -------
+        An array with the solutions. 
+    '''
+    return GaussianElimination(A).solve(b)

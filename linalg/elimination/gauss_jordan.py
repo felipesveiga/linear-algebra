@@ -16,7 +16,7 @@ class GaussJordanElimination:
         `invert`: Finds A^{-1}.
     '''
     def __init__(self, A:np.ndarray):
-        self.__gaussian_elimination = GaussianElimination(A, np.identity(A.shape[0]))
+        self.__gaussian_elimination = GaussianElimination(A)
 
     @staticmethod
     def __eliminate_column(M:np.ndarray, idxs_eliminate:np.ndarray[int], i:int)->np.ndarray:
