@@ -1,6 +1,7 @@
 import numpy as np
-from linalg.elimination import GaussianElimination
+from linalg.elimination import GaussianElimination, GaussJordanElimination
 from linalg.utils.core.core import _assure_dimension
+from typing import List
 
 def dot(x:np.ndarray, y:np.ndarray)->float:
     '''
@@ -60,3 +61,18 @@ def solve(A:np.ndarray, b:np.ndarray)->np.ndarray:
         An array with the solutions. 
     '''
     return GaussianElimination(A).solve(b)
+
+def invert(A:np.ndarray)->np.ndarray:
+    '''
+        Inverts a provided matrix.
+
+        Parameter
+        ---------
+        `A`: `np.ndarray`
+            The input matrix.
+        
+        Returns
+        -------
+        The inverted matrix $A^{-1}$.
+    '''
+    return GaussJordanElimination(A).invert()

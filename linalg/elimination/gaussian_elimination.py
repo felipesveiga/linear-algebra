@@ -1,6 +1,6 @@
 import numpy as np
 from warnings import warn
-from typing import Tuple
+from typing import List
 
 class GaussianElimination:
     '''
@@ -81,7 +81,7 @@ class GaussianElimination:
                 self.E_.insert(0, E)
         self.E_ = np.linalg.multi_dot(self.E_) if len(self.E_)>1 else np.array(self.E_[0])
         
-    def __eliminate(self, b:np.ndarray=None)->Tuple[np.ndarray] | np.ndarray:
+    def __eliminate(self, b:np.ndarray=None)->List[np.ndarray] | np.ndarray:
         '''
             Creates the eliminated coefficient matrix `U_`.
 
@@ -96,7 +96,7 @@ class GaussianElimination:
         '''
         M = np.concatenate((self.A, b), axis=1) if b is not None else self.A
         M = np.linalg.multi_dot((self.E_, self.P_, M)) 
-        return (M[:, :-1], M[:, -1]) if b is not None else M
+        return [M[:, :-1], M[:, -1]] if b is not None else M
 
     def __solve(self, A:np.ndarray, b:np.ndarray)->np.ndarray:
         '''

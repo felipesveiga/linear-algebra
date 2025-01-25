@@ -16,7 +16,8 @@ class GaussJordanElimination:
         `invert`: Finds A^{-1}.
     '''
     def __init__(self, A:np.ndarray):
-        self.__gaussian_elimination = GaussianElimination(A)
+        self.__gaussian_elimination = GaussianElimination(A).eliminate(np.identity(A.shape[0]))
+        self.__gaussian_elimination.U_[1] = self.__gaussian_elimination.U_[1].reshape(-1,1) 
 
     @staticmethod
     def __eliminate_column(M:np.ndarray, idxs_eliminate:np.ndarray[int], i:int)->np.ndarray:
@@ -62,7 +63,7 @@ class GaussJordanElimination:
         '''
             Applies the Jordan Elimination step.
         '''
-        M = np.concatenate((self.__gaussian_elimination.A_, self.__gaussian_elimination.b_), axis=1)
+        M = np.concatenate(self.__gaussian_elimination.U_, axis=1)
         N = M.shape[0] 
         for i in range(1, N):
             idxs_eliminate = np.argwhere(M[:i, i]).flatten()
@@ -76,5 +77,4 @@ class GaussJordanElimination:
         '''
             Inverts the matrix by Gauss-Jordan Elimination
         '''
-        self.__gaussian_elimination =  self.__gaussian_elimination.eliminate()
         return self.__jordan()
