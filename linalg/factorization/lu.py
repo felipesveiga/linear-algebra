@@ -34,10 +34,20 @@ class LU:
             U[i] = U[i]/d 
         return list((D, U))
 
-    def factorize(self)->List[np.ndarray]:
+    def factorize(self, d_u:bool=False)->List[np.ndarray]:
         '''
             Makes the LU decomposition.
+
+            Parameter
+            ---------
+            `d_u`: bool, defaults to False
+                A boolean indicating whether the factorization be returned 
+                in the LDU format.
+
+            Returns
+            -------
+            A list containing the products of the factorization.
         '''
         L = np.linalg.multi_dot((self.gaussian_elimination_.P_, self.gaussian_elimination_.E_))
         L = GaussJordanElimination(L).invert()
-        return [L] + self.__d_u()
+        return [L] + self.__d_u() if d_u else [L] + [self.gaussian_elimination_.U_]
