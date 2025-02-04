@@ -94,9 +94,10 @@ class GaussianElimination:
             -------
             The eliminated coefficients matrix and target vector, if this last one is provided.
         '''
+        N = self.A.shape[0]
         M = np.concatenate((self.A, b), axis=1) if b is not None else self.A
         M = np.linalg.multi_dot((self.E_, self.P_, M)) 
-        return [M[:, :-1], M[:, -1]] if b is not None else M
+        return [M[:, :N], M[:, N:]] if b is not None else M
 
     def __solve(self, A:np.ndarray, b:np.ndarray)->np.ndarray:
         '''
@@ -152,7 +153,7 @@ class GaussianElimination:
             An array with the solutions. 
         '''
         if b is None:
-            if isinstance(self.U_, tuple):
+            if isinstance(self.U_, list):
                 return self.__solve(*self.U_) 
             else:
                 raise ValueError('You must specify a `b` vector')
