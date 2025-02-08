@@ -1,5 +1,4 @@
 import numpy as np
-from warnings import warn
 from typing import List
 
 class GaussianElimination:
@@ -69,21 +68,9 @@ class GaussianElimination:
             else:
                 continue
     
-    def __configure_E(self)->None:
-        '''
-            Creates the elimination matrix `E_`. 
-        '''
-        A = self.P_ @ self.A
-        for i in range(1, A.shape[0]):
-            for j in range(0, i):
-                E = np.identity(A.shape[0])
-                E[i,i-1] = -A[i,j] / A[j,j]
-                self.E_.insert(0, E)
-        self.E_ = np.linalg.multi_dot(self.E_) if len(self.E_)>1 else np.array(self.E_[0])
-        
     def __eliminate(self, b:np.ndarray=None)->List[np.ndarray] | np.ndarray:
         '''
-            Creates the eliminated coefficient matrix `U_`.
+            Creates the elimination matrix `E_` and the eliminated coefficient matrix `U_`.
 
             Parameter
             ---------
@@ -95,9 +82,16 @@ class GaussianElimination:
             The eliminated coefficients matrix and target vector, if this last one is provided.
         '''
         N = self.A.shape[0]
-        M = np.concatenate((self.A, b), axis=1) if b is not None else self.A
-        M = np.linalg.multi_dot((self.E_, self.P_, M)) 
+        M = self.P_ @ (np.concatenate((self.A, b), axis=1) if b is not None else self.A) 
+        for j in range(N-1):
+            for i in range(j+1, N):
+                E = np.identity(N)
+                E[i,j] = -M[i,j] / M[j,j]
+                self.E_.insert(0, E)
+            M = np.linalg.multi_dot(self.E_[:N-(j+1)]+[np.identity(N)]) @ M # Adding an I matrix in case `multi_dot` only receives a single matrix as input.
+        self.E_ = np.linalg.multi_dot(self.E_) if len(self.E_)>1 else np.array(self.E_[0])
         return [M[:, :N], M[:, N:]] if b is not None else M
+        
 
     def __solve(self, A:np.ndarray, b:np.ndarray)->np.ndarray:
         '''
@@ -133,7 +127,6 @@ class GaussianElimination:
                 The target vector.
         '''
         self.__configure_P()
-        self.__configure_E()
         self.U_ = self.__eliminate(b)
         return self
 
@@ -162,5 +155,6 @@ class GaussianElimination:
                 b = np.linalg.multi_dot((self.E_, self.P_, b))
                 return self.__solve(self.U_, b) 
             else:
-                warn('Elimination was already carried out considedring `b`. You did not have to inform it again on `solve`', UserWarning)
-                return self.__solve(*self.U_)
+                self.E_ = []
+                self.eliminate(b)
+                return self.__solve(*self.U_) 

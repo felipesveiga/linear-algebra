@@ -17,7 +17,6 @@ class GaussJordanElimination:
     '''
     def __init__(self, A:np.ndarray):
         self.__gaussian_elimination = GaussianElimination(A).eliminate(np.identity(A.shape[0]))
-        self.__gaussian_elimination.U_[1] = self.__gaussian_elimination.U_[1].reshape(-1,1) 
 
     @staticmethod
     def __eliminate_column(M:np.ndarray, idxs_eliminate:np.ndarray[int], i:int)->np.ndarray:
